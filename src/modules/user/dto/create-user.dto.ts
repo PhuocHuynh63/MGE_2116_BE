@@ -21,6 +21,9 @@ export class RequestUserDto {
     @IsNotEmpty({ message: 'Points is required' })
     pointsRequest: number;
 
+    @IsNotEmpty({ message: 'Secret key is required' })
+    secrectKey: string;
+
     @IsNotEmpty()
     typeMge: string;
 }

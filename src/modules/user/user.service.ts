@@ -36,7 +36,7 @@ export class UserService {
   }
 
   async requestPoint(requestPointDto: RequestUserDto) {
-    const { id, pointsRequest, typeMge } = requestPointDto;
+    const { id, pointsRequest, typeMge, secrectKey } = requestPointDto;
     const findUser = await this.userModel.findOne({ id: id });
     const pointsCondition = pointsRequest < 10000000;
 
@@ -44,26 +44,30 @@ export class UserService {
       if (!findUser) {
         throw new BadRequestException('User not found');
       } else {
-        if (pointsCondition) {
-          throw new BadRequestException('Points must be at least 10.000.000');
+        if (secrectKey !== findUser._id.toString()) {
+          throw new BadRequestException('Wrong secrect key');
         } else {
-          if (findUser.points >= pointsRequest) {
-            const user = await this.userModel.findOneAndUpdate(
-              { id },
-              { points: findUser.points - pointsRequest },
-              { new: true }
-            );
-
-            await this.resultModel.create({
-              id: id,
-              ingame: findUser.ingame,
-              pointsBided: pointsRequest,
-              description: `Bid MGE ${typeMge}`
-            });
-
-            return user;
+          if (pointsCondition) {
+            throw new BadRequestException('Points must be at least 10.000.000');
           } else {
-            throw new BadRequestException('Not enough points');
+            if (findUser.points >= pointsRequest) {
+              const user = await this.userModel.findOneAndUpdate(
+                { id },
+                { points: findUser.points - pointsRequest },
+                { new: true }
+              );
+
+              await this.resultModel.create({
+                id: id,
+                ingame: findUser.ingame,
+                pointsBided: pointsRequest,
+                description: `Bid MGE ${typeMge}`
+              });
+
+              return user;
+            } else {
+              throw new BadRequestException('Not enough points');
+            }
           }
         }
       }
