@@ -32,6 +32,9 @@ export class TimerService {
       if (!lastTime) {
         throw new BadRequestException('No timer found');
       }
+
+      lastTime.users.sort((a, b) => b.points - a.points);
+
       return lastTime;
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -41,10 +44,11 @@ export class TimerService {
     }
   }
 
-  async getTimerActive() {
+  async getTimerActive(selectedFields: string = '') {
     try {
       const lastTime = await this.TimerModel
         .findOne({ status: 'active' })
+        .select(`${selectedFields}`)
       if (!lastTime) {
         throw new BadRequestException('No timer found');
       }
@@ -61,7 +65,7 @@ export class TimerService {
     const { ...props } = setTimerDto;
     try {
       if (props.secretKey !== '6772552b67b6bdd9ce8e79d4') {
-        throw new BadRequestException('Invalid secrect key');
+        throw new BadRequestException('Invalid secret key');
       } else {
         const isExistTimer = await this.existTimerActive();
         if (isExistTimer) {
@@ -73,7 +77,6 @@ export class TimerService {
           return timer;
         } else {
           const timer = new this.TimerModel(setTimerDto);
-
           await timer.save();
           return timer;
         }
@@ -97,6 +100,48 @@ export class TimerService {
         { status: 'complete' },
       );
       return updateStatus
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(error);
+    }
+  }
+
+  async updateUsersTimer(userRequest: any, timer: any, user: any) {
+    try {
+      // const findTimer = await this.TimerModel.findOne({ status: 'active' });
+      if (!timer) {
+        return
+      }
+
+      const findAUserInTimer = timer.users.find((u) => u?.id === userRequest?.id);
+      //Push user to array users in timer
+      if (!findAUserInTimer) {
+        timer.users.push({
+          id: userRequest.id,
+          points: userRequest.pointsRequest,
+          ingame: userRequest.ingame,
+          date: new Date(),
+        });
+        await timer.save();
+        return { message: `You have successfully bid with ${userRequest.pointsRequest} points` };
+      } else {
+        //Update points of user in array users in timer
+        const newPoints = Number(findAUserInTimer.points) + Number(userRequest.pointsRequest);
+        const previousPoints = Number(findAUserInTimer.points);
+
+        if (user.points < newPoints) {
+          throw new BadRequestException(`You have exceeded your current points. Your current bonus points are ${user.points}, your previous bid bonus points are ${userRequest.pointsRequest}`);
+        }
+        //Save new points to user in timer
+        findAUserInTimer.date = new Date();
+        findAUserInTimer.points = newPoints;
+        timer.markModified('users');
+        await timer.save();
+
+        return { newPoints, message: `You previously bid ${previousPoints} bonus points. You have successfully bid a total of ${newPoints} bonus points.` };
+      }
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;

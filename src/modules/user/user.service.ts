@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ResultService } from '../result/result.service';
 import { TimerService } from '../timer/timer.service';
 
 @Injectable()
@@ -13,7 +12,6 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @Inject(forwardRef(() => TimerService)) private readonly timerService: TimerService,
-    private readonly resultService: ResultService,
   ) { }
 
   async isUserExist(id: string) {
@@ -41,40 +39,34 @@ export class UserService {
     const { id, pointsRequest, typeMge, secretKey } = requestPointDto;
     const findUser = await this.userModel.findOne({ id: id });
     const pointsCondition = pointsRequest < 10000000;
-    const isTimerActive = await this.timerService.existTimerActive();
+    const getTimeActive = await this.timerService.getTimerActive('-user');
 
     try {
-      if (isTimerActive) {
+      if (getTimeActive) {
+        //Check exception
         if (!findUser) {
           throw new BadRequestException('User not found');
-        } else {
-          if (secretKey !== findUser._id.toString()) {
-            throw new BadRequestException('Wrong secret key');
-          } else {
-            if (pointsCondition) {
-              throw new BadRequestException('Points must be at least 10.000.000');
-            } else {
-              if (findUser.points >= pointsRequest) {
-                const user = await this.userModel.findOneAndUpdate(
-                  { id },
-                  { points: findUser.points - pointsRequest },
-                  { new: true }
-                );
-
-                await this.resultService.create({
-                  id: id,
-                  ingame: findUser.ingame,
-                  pointsBided: pointsRequest,
-                  description: `Bid MGE ${typeMge}`
-                });
-
-                return user;
-              } else {
-                throw new BadRequestException('Not enough points');
-              }
-            }
-          }
         }
+
+        if (secretKey !== findUser._id.toString()) {
+          throw new BadRequestException('Wrong secret key');
+        }
+
+        if (pointsCondition) {
+          throw new BadRequestException('Points must be at least 10.000.000');
+        }
+
+        if (findUser.points < pointsRequest) {
+          throw new BadRequestException('Not enough points');
+        }
+        //End check exception
+
+        const user = await this.timerService.updateUsersTimer(
+          requestPointDto,
+          getTimeActive,
+          findUser
+        );
+        return user;
       } else {
         throw new BadRequestException('Bidding not yet opened');
       }

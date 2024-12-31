@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Query } from '@nestjs/common';
 import { TimerService } from './timer.service';
 import { CreateTimerDto } from './dto/create-timer.dto';
 import { ResponseMessage } from 'src/decorator/custom';
@@ -10,8 +10,14 @@ export class TimerController {
 
   @Get('/timer-active')
   @ResponseMessage('Timer found successfully')
-  async getTimerActive() {
-    return this.timerService.getTimerActive();
+  async getTimerActive(@Query('selectedFields') selectedFields: string) {
+    return this.timerService.getTimerActive(selectedFields);
+  }
+
+  @Get('/timer-complete-desc')
+  @ResponseMessage('Timer found successfully')
+  async getATimerCompleteDesc() {
+    return this.timerService.getATimerCompleteDesc();
   }
 
   @Post('/set-timer')

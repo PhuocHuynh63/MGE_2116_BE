@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional } from "class-validator";
 import { IsNotInPast } from "src/decorator/validator.custom";
 
 export class CreateTimerDto {
@@ -21,4 +21,18 @@ export class CreateTimerDto {
 
     @IsNotEmpty()
     secretKey: string;
+
+    @IsOptional()
+    users: UserRequestDto[];
+}
+
+class UserRequestDto {
+    @IsNotEmpty()
+    id: string;
+
+    @IsNotEmpty()
+    points: number;
+
+    @IsNotEmpty()
+    ingame: boolean;
 }
