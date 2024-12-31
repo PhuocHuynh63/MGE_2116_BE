@@ -9,9 +9,6 @@ export class CreateUserDto {
 
     @IsNotEmpty({ message: 'Points is required' })
     pointsRequest: number;
-
-    @IsNotEmpty({ message: 'Secret key is required' })
-    secrectKey: string;
 }
 
 export class RequestUserDto {
@@ -25,7 +22,7 @@ export class RequestUserDto {
     pointsRequest: number;
 
     @IsNotEmpty({ message: 'Secret key is required' })
-    secrectKey: string;
+    secretKey: string;
 
     @IsNotEmpty()
     typeMge: string;

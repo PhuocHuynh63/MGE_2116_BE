@@ -5,13 +5,15 @@ import { Model, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ResultService } from '../result/result.service';
+import { TimerService } from '../timer/timer.service';
 
 @Injectable()
 export class UserService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
-    private readonly resultModel: ResultService
+    private readonly resultService: ResultService,
+    private readonly timerService: TimerService
   ) { }
 
   async isUserExist(id: string) {
@@ -36,40 +38,45 @@ export class UserService {
   }
 
   async requestPoint(requestPointDto: RequestUserDto) {
-    const { id, pointsRequest, typeMge, secrectKey } = requestPointDto;
+    const { id, pointsRequest, typeMge, secretKey } = requestPointDto;
     const findUser = await this.userModel.findOne({ id: id });
     const pointsCondition = pointsRequest < 10000000;
+    const isTimerActive = await this.timerService.existTimerActive();
 
     try {
-      if (!findUser) {
-        throw new BadRequestException('User not found');
-      } else {
-        if (secrectKey !== findUser._id.toString()) {
-          throw new BadRequestException('Wrong secrect key');
+      if (isTimerActive) {
+        if (!findUser) {
+          throw new BadRequestException('User not found');
         } else {
-          if (pointsCondition) {
-            throw new BadRequestException('Points must be at least 10.000.000');
+          if (secretKey !== findUser._id.toString()) {
+            throw new BadRequestException('Wrong secrect key');
           } else {
-            if (findUser.points >= pointsRequest) {
-              const user = await this.userModel.findOneAndUpdate(
-                { id },
-                { points: findUser.points - pointsRequest },
-                { new: true }
-              );
-
-              await this.resultModel.create({
-                id: id,
-                ingame: findUser.ingame,
-                pointsBided: pointsRequest,
-                description: `Bid MGE ${typeMge}`
-              });
-
-              return user;
+            if (pointsCondition) {
+              throw new BadRequestException('Points must be at least 10.000.000');
             } else {
-              throw new BadRequestException('Not enough points');
+              if (findUser.points >= pointsRequest) {
+                const user = await this.userModel.findOneAndUpdate(
+                  { id },
+                  { points: findUser.points - pointsRequest },
+                  { new: true }
+                );
+
+                await this.resultService.create({
+                  id: id,
+                  ingame: findUser.ingame,
+                  pointsBided: pointsRequest,
+                  description: `Bid MGE ${typeMge}`
+                });
+
+                return user;
+              } else {
+                throw new BadRequestException('Not enough points');
+              }
             }
           }
         }
+      } else {
+        throw new BadRequestException('Bidding not yet opened');
       }
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -83,7 +90,7 @@ export class UserService {
     const { admin_key, ...payload } = updateUserDto;
     const findUser = await this.userModel.findOne({ id: payload.id });
     try {
-      if (admin_key !== '6753c72d64f354d9d86b746d') {
+      if (admin_key !== '677255766468b9ff71d6dabf') {
         throw new BadRequestException('Wrong admin key');
       } else {
         if (findUser) {
