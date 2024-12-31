@@ -1,12 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Timer } from './entities/timer.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateTimerDto } from './dto/create-timer.dto';
+import { UserService } from '../user/user.service';
 @Injectable()
 export class TimerService {
   constructor(
     @InjectModel(Timer.name) private TimerModel: Model<Timer>,
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
   ) { }
 
   async existTimerActive() {
@@ -18,6 +20,23 @@ export class TimerService {
       }
       return true;
     } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getATimerCompleteDesc() {
+    try {
+      const lastTime = await this.TimerModel
+        .findOne({ status: 'complete' })
+        .sort({ createdAt: 'desc' })
+      if (!lastTime) {
+        throw new BadRequestException('No timer found');
+      }
+      return lastTime;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new Error(error);
     }
   }
@@ -54,6 +73,7 @@ export class TimerService {
           return timer;
         } else {
           const timer = new this.TimerModel(setTimerDto);
+
           await timer.save();
           return timer;
         }

@@ -1,22 +1,22 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
 import { Result, ResultSchema } from '../result/entities/result.entity';
 import { ResultService } from '../result/result.service';
-import { TimerService } from '../timer/timer.service';
-import { Timer, TimerSchema } from '../timer/entities/timer.entity';
+import { TimerModule } from '../timer/timer.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Result.name, schema: ResultSchema },
-      { name: Timer.name, schema: TimerSchema }
     ]),
+    forwardRef(() => TimerModule),
   ],
   controllers: [UserController],
-  providers: [UserService, ResultService, TimerService],
+  providers: [UserService, ResultService],
+  exports: [UserService],
 })
 export class UserModule { }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto, RequestUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -12,8 +12,8 @@ export class UserService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
+    @Inject(forwardRef(() => TimerService)) private readonly timerService: TimerService,
     private readonly resultService: ResultService,
-    private readonly timerService: TimerService
   ) { }
 
   async isUserExist(id: string) {
@@ -49,7 +49,7 @@ export class UserService {
           throw new BadRequestException('User not found');
         } else {
           if (secretKey !== findUser._id.toString()) {
-            throw new BadRequestException('Wrong secrect key');
+            throw new BadRequestException('Wrong secret key');
           } else {
             if (pointsCondition) {
               throw new BadRequestException('Points must be at least 10.000.000');
