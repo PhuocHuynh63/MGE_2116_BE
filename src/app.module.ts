@@ -10,6 +10,7 @@ import { TransformInterceptor } from './core/transform.interceptor';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { TimerModule } from './modules/timer/timer.module';
+import { ResultModule } from './modules/result/result.module';
 
 
 @Module({
@@ -50,6 +51,7 @@ import { TimerModule } from './modules/timer/timer.module';
     UserModule,
     MgeModule,
     TimerModule,
+    ResultModule,
   ],
   controllers: [AppController],
   providers: [

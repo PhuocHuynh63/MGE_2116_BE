@@ -1,14 +1,12 @@
-import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Timer } from './entities/timer.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateTimerDto } from './dto/create-timer.dto';
-import { UserService } from '../user/user.service';
 @Injectable()
 export class TimerService {
   constructor(
     @InjectModel(Timer.name) private TimerModel: Model<Timer>,
-    @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
   ) { }
 
   async existTimerActive() {
@@ -24,12 +22,13 @@ export class TimerService {
     }
   }
 
-  async getATimerCompleteDesc() {
+  async getATimerPending(sort: string) {
     try {
       const lastTime = await this.TimerModel
-        .findOne({ status: 'complete' })
-        .sort({ createdAt: 'desc' })
-      if (!lastTime) {
+        .findOne({ status: 'pending' })
+        .sort({ createdAt: sort === 'desc' ? -1 : 1 })
+
+      if (lastTime === null) {
         throw new BadRequestException('No timer found');
       }
 
@@ -49,6 +48,22 @@ export class TimerService {
       const lastTime = await this.TimerModel
         .findOne({ status: 'active' })
         .select(`${selectedFields}`)
+      if (!lastTime) {
+        throw new BadRequestException('No timer found');
+      }
+      return lastTime;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(error);
+    }
+  }
+
+  async getTimerPending() {
+    try {
+      const lastTime = await this.TimerModel
+        .findOne({ status: 'pending' });
       if (!lastTime) {
         throw new BadRequestException('No timer found');
       }
@@ -89,7 +104,7 @@ export class TimerService {
     }
   }
 
-  async updateStatusTimer() {
+  async updateStatusTimerToPending() {
     try {
       const timerActive = await this.getTimerActive();
       if (!timerActive) {
@@ -97,6 +112,25 @@ export class TimerService {
       }
       const updateStatus = await this.TimerModel.findOneAndUpdate(
         { status: 'active' },
+        { status: 'pending' },
+      );
+      return updateStatus
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(error);
+    }
+  }
+
+  async updateStatusTimerToComplete() {
+    try {
+      const timerActive = await this.getTimerPending();
+      if (!timerActive) {
+        throw new BadRequestException('No timer found');
+      }
+      const updateStatus = await this.TimerModel.findOneAndUpdate(
+        { status: 'pending' },
         { status: 'complete' },
       );
       return updateStatus
@@ -149,4 +183,6 @@ export class TimerService {
       throw new Error(error);
     }
   }
+
+
 }

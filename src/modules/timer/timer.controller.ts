@@ -14,10 +14,10 @@ export class TimerController {
     return this.timerService.getTimerActive(selectedFields);
   }
 
-  @Get('/timer-complete-desc')
+  @Get('/timer-pending')
   @ResponseMessage('Timer found successfully')
-  async getATimerCompleteDesc() {
-    return this.timerService.getATimerCompleteDesc();
+  async getATimerPending(@Query('sort') sort) {
+    return this.timerService.getATimerPending(sort);
   }
 
   @Post('/set-timer')
@@ -26,9 +26,9 @@ export class TimerController {
     return this.timerService.setTimer(setTimerDto);
   }
 
-  @Put('/update/status-timer')
+  @Put('/update/status-timer-pending')
   @ResponseMessage('Status timer updated successfully')
-  updateStatusTimer() {
-    return this.timerService.updateStatusTimer();
+  updateStatusTimerToPending() {
+    return this.timerService.updateStatusTimerToPending();
   }
 }

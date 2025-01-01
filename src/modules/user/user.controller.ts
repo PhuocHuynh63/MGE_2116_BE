@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UserService } from './user.service';
 import { CreateUserDto, RequestUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ResponseMessage } from 'src/decorator/custom';
 
 @Controller('user')
 export class UserController {
@@ -20,5 +21,11 @@ export class UserController {
   @Post('update-user')
   updateUser(@Body() updateUserDto: UpdateUserDto) {
     return this.userService.updateUser(updateUserDto);
+  }
+
+  @Post('king-confirm')
+  @ResponseMessage('King confirmed successfully')
+  kingConfirm(@Body('secretKey') secretKey: string) {
+    return this.userService.kingConfirm(secretKey);
   }
 }

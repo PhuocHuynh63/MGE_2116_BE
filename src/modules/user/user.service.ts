@@ -1,17 +1,19 @@
-import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto, RequestUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { TimerService } from '../timer/timer.service';
+import { ResultService } from '../result/result.service';
 
 @Injectable()
 export class UserService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
-    @Inject(forwardRef(() => TimerService)) private readonly timerService: TimerService,
+    private readonly timerService: TimerService,
+    private readonly resultService: ResultService,
   ) { }
 
   async isUserExist(id: string) {
@@ -23,6 +25,24 @@ export class UserService {
       const isUserExist = await this.userModel.exists({ id });
 
       return isUserExist ? true : false;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(error);
+    }
+  }
+
+  async findOne(id: string) {
+    try {
+      const isUserExist = await this.isUserExist(id);
+      if (!isUserExist) {
+        throw new BadRequestException('User not found');
+      }
+
+      const user = await this.userModel.findOne({ id });
+
+      return user;
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -114,16 +134,46 @@ export class UserService {
     }
   }
 
-  async findOne(id: string) {
+  async kingConfirm(secretKey: string) {
     try {
-      const isUserExist = await this.isUserExist(id);
-      if (!isUserExist) {
-        throw new BadRequestException('User not found');
+      const timer = await this.timerService.getATimerPending('desc');
+
+      const findAllUsersInTimer = timer.users;
+      if (findAllUsersInTimer.length === 0) {
+        return [];
       }
 
-      const user = await this.userModel.findOne({ id });
+      if (secretKey !== '677255766468b9ff71d6dabf') {
+        throw new BadRequestException('Wrong secret key');
+      } else {
+        //Create result for all users in timer
+        const createResult = await Promise.all(findAllUsersInTimer.map((user) => {
+          const result = this.resultService.createResult({
+            id: user.id.toString(),
+            ingame: user.ingame,
+            points: user.points,
+            description: `Bid MGE ${timer.typeMge}`,
+          });
+          return result;
+        }));
 
-      return user;
+
+        //Update points user
+        await Promise.all(findAllUsersInTimer.map(async (user) => {
+          const findUser = await this.userModel.findOne({ id: user.id });
+          const newPoints = findUser.points - user.points;
+          await this.userModel.findOneAndUpdate(
+            { id: user.id },
+            { points: newPoints },
+            { new: true }
+          );
+        }));
+
+        //Update status timer to complete
+        await this.timerService.updateStatusTimerToComplete();
+
+        return createResult;
+      }
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
