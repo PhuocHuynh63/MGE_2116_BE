@@ -12,9 +12,6 @@ export class User {
     @Prop()
     points: number;
 
-    @Prop()
-    description: string;
-
     @Prop({ type: Types.ObjectId, ref: 'User' })
     admin_key: Types.ObjectId;
 }

@@ -23,8 +23,5 @@ export class RequestUserDto {
 
     @IsNotEmpty({ message: 'Secret key is required' })
     secretKey: string;
-
-    @IsNotEmpty()
-    typeMge: string;
 }
 

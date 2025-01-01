@@ -56,7 +56,7 @@ export class UserService {
   }
 
   async requestPoint(requestPointDto: RequestUserDto) {
-    const { id, pointsRequest, typeMge, secretKey } = requestPointDto;
+    const { id, pointsRequest, secretKey } = requestPointDto;
     const findUser = await this.userModel.findOne({ id: id });
     const pointsCondition = pointsRequest < 10000000;
     const getTimeActive = await this.timerService.getTimerActive('-user');
@@ -104,26 +104,31 @@ export class UserService {
     try {
       if (admin_key !== '677255766468b9ff71d6dabf') {
         throw new BadRequestException('Wrong admin key');
+      }
+
+      if (findUser) {
+        const user = await this.userModel.findOneAndUpdate(
+          { id: payload.id },
+          {
+            points: findUser.points + payload.pointsRequest,
+          },
+          { new: true }
+        );
+
+        await this.historyService.createHistory({
+          id: user.id.toString(),
+          ingame: user.ingame,
+          points: payload.pointsRequest,
+          description: payload.description || 'Admin add points',
+        });
+        return user
       } else {
-        if (findUser) {
-          const user = await this.userModel.findOneAndUpdate(
-            { id: payload.id },
-            {
-              points: findUser.points + payload.pointsRequest,
-              description: payload.description
-            },
-            { new: true }
-          );
-          return user
-        } else {
-          const user = new this.userModel({
-            ...payload,
-            points: payload.pointsRequest,
-            description: 'Create account'
-          });
-          await user.save();
-          return user;
-        }
+        const user = new this.userModel({
+          ...payload,
+          points: payload.pointsRequest,
+        });
+        await user.save();
+        return user;
       }
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -151,7 +156,7 @@ export class UserService {
           const history = this.historyService.createHistory({
             id: user.id.toString(),
             ingame: user.ingame,
-            points: user.points,
+            points: -user.points,
             description: `Bid MGE ${timer.typeMge}`,
           });
           return history;
