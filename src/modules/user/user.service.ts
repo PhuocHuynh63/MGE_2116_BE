@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto, RequestUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -37,7 +37,7 @@ export class UserService {
     try {
       const isUserExist = await this.isUserExist(id);
       if (!isUserExist) {
-        throw new BadRequestException('User not found');
+        throw new NotFoundException('User not found');
       }
 
       const user = await this.userModel.findOne({ id });
@@ -65,7 +65,7 @@ export class UserService {
       if (getTimeActive) {
         //Check exception
         if (!findUser) {
-          throw new BadRequestException('User not found');
+          throw new NotFoundException('User not found');
         }
 
         if (secretKey !== findUser._id.toString()) {
