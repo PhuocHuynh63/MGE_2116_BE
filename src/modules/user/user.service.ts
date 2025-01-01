@@ -5,7 +5,7 @@ import { Model, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { TimerService } from '../timer/timer.service';
-import { ResultService } from '../result/result.service';
+import { HistoryService } from '../history/history.service';
 
 @Injectable()
 export class UserService {
@@ -13,7 +13,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly timerService: TimerService,
-    private readonly resultService: ResultService,
+    private readonly historyService: HistoryService,
   ) { }
 
   async isUserExist(id: string) {
@@ -146,15 +146,15 @@ export class UserService {
       if (secretKey !== '677255766468b9ff71d6dabf') {
         throw new BadRequestException('Wrong secret key');
       } else {
-        //Create result for all users in timer
-        const createResult = await Promise.all(findAllUsersInTimer.map((user) => {
-          const result = this.resultService.createResult({
+        //Create history for all users in timer
+        const createHistory = await Promise.all(findAllUsersInTimer.map((user) => {
+          const history = this.historyService.createHistory({
             id: user.id.toString(),
             ingame: user.ingame,
             points: user.points,
             description: `Bid MGE ${timer.typeMge}`,
           });
-          return result;
+          return history;
         }));
 
 
@@ -172,7 +172,7 @@ export class UserService {
         //Update status timer to complete
         await this.timerService.updateStatusTimerToComplete();
 
-        return createResult;
+        return createHistory;
       }
     } catch (error) {
       if (error instanceof BadRequestException) {

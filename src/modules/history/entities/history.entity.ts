@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 
 @Schema({ timestamps: true })
-export class Result {
+export class History {
     @Prop()
     id: string;
 
@@ -15,5 +15,5 @@ export class Result {
     description: string;
 }
 
-export const ResultSchema = SchemaFactory.createForClass(Result);
+export const HistorySchema = SchemaFactory.createForClass(History);
 

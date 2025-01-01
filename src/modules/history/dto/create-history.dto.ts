@@ -1,6 +1,6 @@
 import { IsNotEmpty } from "class-validator";
 
-export class CreateResultDto {
+export class CreateHistoryDto {
     @IsNotEmpty()
     id: string;
 
