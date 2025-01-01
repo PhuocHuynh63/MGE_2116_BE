@@ -8,7 +8,7 @@ export class CreateUserDto {
     ingame: string;
 
     @IsNotEmpty({ message: 'Points is required' })
-    pointsRequest: number;
+    points: number;
 }
 
 export class RequestUserDto {

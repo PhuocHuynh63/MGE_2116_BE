@@ -6,7 +6,9 @@ import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { TimerService } from '../timer/timer.service';
 import { HistoryService } from '../history/history.service';
-
+import * as fs from 'fs';
+import * as csvParser from 'csv-parser';
+import aqp from 'api-query-params';
 @Injectable()
 export class UserService {
 
@@ -47,6 +49,47 @@ export class UserService {
       if (error instanceof BadRequestException) {
         throw error;
       }
+      throw new Error(error);
+    }
+  }
+
+  async findAll(query: string, current: number, pageSize: number) {
+    try {
+      const { filter, sort } = aqp(query);
+
+      if (filter.current) delete filter.current;
+      if (filter.pageSize) delete filter.pageSize;
+
+      if (!current) {
+        current = 1;
+      }
+      if (!pageSize) {
+        pageSize = 10;
+      }
+
+      const excludedId = "677255766468b9ff71d6dabf";
+      filter._id = { $ne: excludedId };
+
+      const totalItem = (await this.userModel.countDocuments(filter));
+      const totalPage = Math.ceil(totalItem / pageSize);
+      let skip = (current - 1) * pageSize;
+
+      const results = await this.userModel
+        .find(filter)
+        .limit(pageSize)
+        .skip(skip)
+        .sort({ points: -1, ...sort })
+        .select('-_id');
+      return {
+        meta: {
+          current: current,
+          pageSize: pageSize,
+          totalPage: totalPage,
+          totalItem: totalItem
+        },
+        results
+      };
+    } catch (error) {
       throw new Error(error);
     }
   }
@@ -185,5 +228,44 @@ export class UserService {
       }
       throw new Error(error);
     }
+  }
+
+  async importCsv(filePath: string): Promise<void> {
+    const users = [];
+
+    // Trả về Promise để xử lý async
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (data) => {
+          // Giả sử các trường trong CSV là id, ingame, points
+          const userData = {
+            id: data.id,
+            ingame: data.ingame,
+            points: Number(data.points),
+          };
+
+          // Thêm user vào mảng
+          users.push(userData);
+        })
+        .on('end', resolve)  // Kết thúc đọc file
+        .on('error', reject); // Xử lý lỗi
+    });
+
+    // Sau khi hoàn tất việc đọc file, xử lý mảng users
+    for (const user of users) {
+      const existingUser = await this.userModel.findOne({ id: user.id });
+
+      if (existingUser) {
+        // Nếu user tồn tại, cộng điểm vào user cũ
+        existingUser.points += user.points;
+        await existingUser.save();
+      } else {
+        // Nếu user chưa tồn tại, tạo mới user
+        await this.userModel.create(user);
+      }
+    }
+
+    console.log('CSV data has been processed and imported into MongoDB');
   }
 }

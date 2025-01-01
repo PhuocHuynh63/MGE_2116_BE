@@ -11,9 +11,6 @@ export class User {
 
     @Prop()
     points: number;
-
-    @Prop({ type: Types.ObjectId, ref: 'User' })
-    admin_key: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
