@@ -22,8 +22,11 @@ export class UserController {
 
   @Get('search')
   @ResponseMessage('Search user successfully')
-  async searchByNameOrId(@Query('term') term: string) {
-    return await this.userService.searchByNameOrId(term);
+  async searchByNameOrId(
+    @Query('term') term: string,
+    @Query('current') current: string,
+    @Query('pageSize') pageSize: string,) {
+    return await this.userService.searchByNameOrId(term, +current, +pageSize);
   }
 
   @Post('create-user')
