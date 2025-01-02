@@ -94,51 +94,47 @@ export class UserService {
     }
   }
 
-  async searchByNameOrId(term: string, current: number, pageSize: number) {
+  async searchByNameOrId(term: string, current = 1, pageSize = 10) {
     try {
-      const { filter } = aqp(term);
-
-      if (filter.current) delete filter.current;
-      if (filter.pageSize) delete filter.pageSize;
-
-      if (!current) {
-        current = 1;
-      }
-      if (!pageSize) {
-        pageSize = 10;
-      }
-
       const excludedId = "677255766468b9ff71d6dabf";
-      filter._id = { $ne: excludedId };
+  
+      const skip = (current - 1) * pageSize;
 
-      const totalItem = (await this.userModel.countDocuments(filter));
+      const filter = {
+        $and: [
+          { _id: { $ne: excludedId } },
+          {
+            $or: [
+              { id: { $regex: term, $options: 'i' } },
+              { ingame: { $regex: term, $options: 'i' } },
+            ],
+          },
+        ],
+      };
+  
+      const totalItem = await this.userModel.countDocuments(filter);
       const totalPage = Math.ceil(totalItem / pageSize);
-      let skip = (current - 1) * pageSize;
-
+  
       const results = await this.userModel
-        .find({
-          $or: [
-            { id: { $regex: term, $options: 'i' } },
-            { ingame: { $regex: term, $options: 'i' } },
-          ],
-        })
-        .limit(pageSize)
+        .find(filter)
         .skip(skip)
+        .limit(pageSize)
         .select('-_id');
-
+  
       return {
         meta: {
-          current: current,
-          pageSize: pageSize,
-          totalPage: totalPage,
-          totalItem: totalItem
+          current,
+          pageSize,
+          totalPage,
+          totalItem,
         },
-        results
+        results,
       };
     } catch (error) {
-      throw new Error(error);
+      throw new Error(error.message || 'Error while searching data');
     }
   }
+  
 
   create(createUserDto: CreateUserDto) {
     return this.userModel.create(createUserDto);
