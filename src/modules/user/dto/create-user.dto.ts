@@ -1,4 +1,4 @@
-import { IsNotEmpty } from "class-validator"
+import { IsNotEmpty, IsOptional } from "class-validator"
 
 export class CreateUserDto {
     @IsNotEmpty({ message: 'ID is required' })
@@ -23,5 +23,8 @@ export class RequestUserDto {
 
     @IsNotEmpty({ message: 'Secret key is required' })
     secretKey: string;
+
+    @IsOptional()
+    email: string;
 }
 

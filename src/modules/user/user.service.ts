@@ -94,6 +94,21 @@ export class UserService {
     }
   }
 
+  async searchByNameOrId(term: string) {
+    try {
+      const users = await this.userModel.find({
+        $or: [
+          { id: { $regex: term, $options: 'i' } },
+          { ingame: { $regex: term, $options: 'i' } },
+        ],
+      });
+
+      return users;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
   create(createUserDto: CreateUserDto) {
     return this.userModel.create(createUserDto);
   }
@@ -134,7 +149,7 @@ export class UserService {
         throw new BadRequestException('Bidding not yet opened');
       }
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
       throw new Error(error);

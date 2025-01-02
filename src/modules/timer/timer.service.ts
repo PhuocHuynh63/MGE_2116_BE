@@ -114,7 +114,7 @@ export class TimerService {
       );
       return updateStatus
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
       throw new Error(error);
