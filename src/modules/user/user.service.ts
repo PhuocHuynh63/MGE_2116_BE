@@ -94,11 +94,16 @@ export class UserService {
     }
   }
 
-  async searchByNameOrId(term: string, current = 1, pageSize = 10) {
+  async searchByNameOrId(term: string, current: number, pageSize: number) {
     try {
+      if (!current) {
+        current = 1;
+      }
+      if (!pageSize) {
+        pageSize = 10;
+      }
+
       const excludedId = "677255766468b9ff71d6dabf";
-  
-      const skip = (current - 1) * pageSize;
 
       const filter = {
         $and: [
@@ -111,30 +116,32 @@ export class UserService {
           },
         ],
       };
-  
-      const totalItem = await this.userModel.countDocuments(filter);
+
+
+      const totalItem = (await this.userModel.countDocuments(filter));
       const totalPage = Math.ceil(totalItem / pageSize);
-  
+      let skip = (current - 1) * pageSize;
+
       const results = await this.userModel
         .find(filter)
-        .skip(skip)
         .limit(pageSize)
-        .select('-_id');
-  
+        .skip(skip)
+        .select('-_id')
+        .sort({ points: -1 });
+
       return {
         meta: {
-          current,
-          pageSize,
-          totalPage,
-          totalItem,
+          current: current,
+          pageSize: pageSize,
+          totalPage: totalPage,
+          totalItem: totalItem
         },
-        results,
+        results
       };
     } catch (error) {
-      throw new Error(error.message || 'Error while searching data');
+      throw new Error(error);
     }
   }
-  
 
   create(createUserDto: CreateUserDto) {
     return this.userModel.create(createUserDto);
