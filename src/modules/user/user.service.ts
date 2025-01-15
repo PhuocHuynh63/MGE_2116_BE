@@ -232,6 +232,8 @@ export class UserService {
   }
 
   async kingConfirm(secretKey: string) {
+    console.log(secretKey);
+    
     try {
       const timer = await this.timerService.getATimerPending('desc');
 
