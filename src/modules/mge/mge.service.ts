@@ -40,6 +40,13 @@ export class MgeService {
     return { results, totalPage };
   }
 
+  async findByTypeMge(typeMge: string) {
+    return await this.mgeModel
+      .find({ typeMge })
+      .sort({ createdAt: -1 })
+      .limit(5)
+  }
+
   async create(createMgeDto: CreateMgeDto) {
     const { name, typeMge, img } = createMgeDto;
 

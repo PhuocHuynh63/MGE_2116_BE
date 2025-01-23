@@ -16,8 +16,8 @@ export class TimerController {
 
   @Get('/timer-pending')
   @ResponseMessage('Timer found successfully')
-  async getATimerPending(@Query('sort') sort) {
-    return this.timerService.getATimerPending(sort);
+  async getATimer(@Query('sort') sort, @Query('status') status) {
+    return this.timerService.getATimer(sort, status);
   }
 
   @Post('/set-timer')

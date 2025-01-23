@@ -22,10 +22,10 @@ export class TimerService {
     }
   }
 
-  async getATimerPending(sort: string) {
+  async getATimer(sort: string, status: string) {
     try {
       const lastTime = await this.TimerModel
-        .findOne({ status: 'pending' })
+        .findOne({ status: status })
         .sort({ createdAt: sort === 'desc' ? -1 : 1 })
 
       if (lastTime === null) {

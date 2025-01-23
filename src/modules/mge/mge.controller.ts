@@ -18,6 +18,12 @@ export class MgeController {
     return await this.mgeService.findAll(query, +current, +pageSize);
   }
 
+  @Get('type-mge')
+  @ResponseMessage('Get MGE by type successful')
+  async findByTypeMge(@Query('typeMge') typeMge: string) {
+    return await this.mgeService.findByTypeMge(typeMge);
+  }
+
   @Post('create-mge')
   create(@Body() createMgeDto: CreateMgeDto) {
     return this.mgeService.create(createMgeDto);

@@ -233,7 +233,7 @@ export class UserService {
 
   async kingConfirm(secretKey: string) {
     try {
-      const timer = await this.timerService.getATimerPending('desc');
+      const timer = await this.timerService.getATimer('desc', 'pending');
 
       const findAllUsersInTimer = timer.users;
       if (findAllUsersInTimer.length === 0) {
