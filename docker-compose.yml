@@ -1,0 +1,34 @@
+version: '2.2'
+services:
+  # MongoDB Service
+  database:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "mge2116"
+      MONGO_INITDB_ROOT_PASSWORD: "mge2116_rok"
+    ports:
+      - "27017:27017"
+    networks:
+      - mge2116net
+
+  # Backend Service (NestJS)
+  backend:
+    container_name: backend
+    build:
+      context: /home/root/BE
+      dockerfile: Dockerfile
+    environment:
+      - .env
+    depends_on:
+      - database
+    ports:
+      - "8080:8080"
+    networks:
+      - mge2116net
+
+# Define the network
+networks:
+  mge2116net:
+    external: true

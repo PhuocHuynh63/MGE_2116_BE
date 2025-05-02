@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { HistoryService } from './history.service';
 import { ResponseMessage } from 'src/decorator/custom';
 
@@ -8,7 +8,11 @@ export class HistoryController {
 
   @Get()
   @ResponseMessage('History found successfully')
-  async findHistory() {
-    return this.historyService.findHistory();
+  async findHistory(
+    @Query('current') current: string,
+    @Query('pageSize') pageSize: string,
+    @Query('sort') sort: string,
+  ) {
+    return this.historyService.findHistory(+current, +pageSize, sort);
   }
 }
