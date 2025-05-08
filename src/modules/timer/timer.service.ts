@@ -79,7 +79,7 @@ export class TimerService {
   async setTimer(setTimerDto: CreateTimerDto) {
     const { ...props } = setTimerDto;
     try {
-      if (props.secretKey !== '6772552b67b6bdd9ce8e79d4') {
+      if (props.secretKey !== '681cf90f70e8637b629afbf6') {
         throw new BadRequestException('Invalid secret key');
       } else {
         const isExistTimer = await this.existTimerActive();

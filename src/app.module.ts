@@ -11,6 +11,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { TimerModule } from './modules/timer/timer.module';
 import { HistoryModule } from './modules/history/history.module';
+import { AuthModule } from './auth/auth.module';
 
 
 
@@ -53,6 +54,7 @@ import { HistoryModule } from './modules/history/history.module';
     MgeModule,
     TimerModule,
     HistoryModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

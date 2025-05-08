@@ -18,5 +18,6 @@ import { HistoryService } from '../history/history.service';
   ],
   controllers: [UserController],
   providers: [UserService, TimerService, HistoryService],
+  exports: [UserService],
 })
 export class UserModule { }

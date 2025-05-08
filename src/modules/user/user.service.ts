@@ -18,6 +18,7 @@ export class UserService {
     private readonly historyService: HistoryService,
   ) { }
 
+
   async isUserExist(id: string) {
     try {
       if (!Types.ObjectId.isValid(id)) {
@@ -33,6 +34,14 @@ export class UserService {
       }
       throw new Error(error);
     }
+  }
+
+  async findByUsername(username: string) {
+    const user = await this.userModel.findOne({ username });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async findOne(id: string) {
@@ -67,7 +76,7 @@ export class UserService {
         pageSize = 10;
       }
 
-      const excludedId = "677255766468b9ff71d6dabf";
+      const excludedId = "681cf90f70e8637b629afbf6";
       filter._id = { $ne: excludedId };
 
       const totalItem = (await this.userModel.countDocuments(filter));
@@ -233,7 +242,7 @@ export class UserService {
 
   async kingConfirm(secretKey: string) {
     console.log(secretKey);
-    
+
     try {
       const timer = await this.timerService.getATimer('desc', 'pending');
 

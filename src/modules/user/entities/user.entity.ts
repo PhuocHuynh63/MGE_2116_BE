@@ -6,6 +6,12 @@ export class User {
     @Prop({ required: true })
     id: string;
 
+    @Prop()
+    username: string;
+
+    @Prop()
+    password: string;
+
     @Prop({ required: true })
     ingame: string;
 
