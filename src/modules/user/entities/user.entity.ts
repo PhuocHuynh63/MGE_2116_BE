@@ -17,6 +17,12 @@ export class User {
 
     @Prop()
     points: number;
+
+    @Prop()
+    createdAt: Date;
+
+    @Prop()
+    updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

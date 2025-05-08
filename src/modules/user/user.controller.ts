@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseInterceptors, UploadedFile, Query, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { UserService } from './user.service';
 import { CreateUserDto, RequestUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -69,5 +70,10 @@ export class UserController {
     await this.userService.importCsv(filePath);
 
     return { message: 'File CSV đã được import thành công' };
+  }
+
+  @Get('export')
+  async exportUserToExcel(@Res() res: Response) {
+    return this.userService.exportUserToExcel(res);
   }
 }

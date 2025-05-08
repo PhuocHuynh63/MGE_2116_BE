@@ -8,6 +8,8 @@ import { TimerService } from '../timer/timer.service';
 import { HistoryService } from '../history/history.service';
 import * as fs from 'fs';
 import * as csvParser from 'csv-parser';
+import * as ExcelJS from 'exceljs';
+import { Response } from 'express';
 import aqp from 'api-query-params';
 @Injectable()
 export class UserService {
@@ -328,4 +330,56 @@ export class UserService {
 
     console.log('CSV data has been processed and imported into MongoDB');
   }
+
+  async exportUserToExcel(res: Response): Promise<void> {
+    try {
+      // Lấy toàn bộ dữ liệu người dùng từ MongoDB
+      const users = await this.userModel.find().sort({ createdAt: -1 }).exec();
+
+      // Tạo một workbook mới
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Users');
+
+      // Định nghĩa các cột trong Excel
+      worksheet.columns = [
+        { header: 'NO', key: 'no', width: 5 },
+        { header: 'ID', key: 'id', width: 20 },
+        { header: 'Ingame', key: 'ingame', width: 20 },
+        { header: 'Điểm', key: 'points', width: 15 },
+        { header: 'Ngày tạo', key: 'createdAt', width: 25 },
+        { header: 'Ngày cập nhật', key: 'updatedAt', width: 25 },
+      ];
+
+      // Thêm từng dòng vào worksheet
+      users.forEach((user, index) => {
+        worksheet.addRow({
+          no: index + 1,
+          id: user.id,
+          ingame: user.ingame,
+          points: user.points,
+          createdAt: new Date(user.createdAt).toLocaleString('vi-VN'),
+          updatedAt: new Date(user.updatedAt).toLocaleString('vi-VN'),
+        });
+      });
+
+      // Thiết lập các header cho file Excel
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''user-export.xlsx`);
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=user-export.xlsx',
+      );
+
+      // Ghi workbook vào response và gửi file về client
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error('Error exporting user data:', error);
+      res.status(500).send('Error exporting user data');
+    }
+  }
+
 }
