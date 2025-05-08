@@ -1,4 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { HistoryService } from './history.service';
 import { ResponseMessage } from 'src/decorator/custom';
 
@@ -14,5 +15,10 @@ export class HistoryController {
     @Query('sort') sort: string,
   ) {
     return this.historyService.findHistory(+current, +pageSize, sort);
+  }
+
+  @Get('export')
+  async exportHistoryToExcel(@Res() res: Response) {
+    return this.historyService.exportHistoryToExcel(res);
   }
 }

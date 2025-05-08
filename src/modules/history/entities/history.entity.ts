@@ -13,6 +13,12 @@ export class History {
 
     @Prop()
     description: string;
+
+    @Prop()
+    createdAt: Date;
+
+    @Prop()
+    updatedAt: Date;
 }
 
 export const HistorySchema = SchemaFactory.createForClass(History);
