@@ -19,7 +19,7 @@ services:
     build:
       context: /home/root/BE
       dockerfile: Dockerfile
-    environment:
+    env_file:
       - .env
     depends_on:
       - database
