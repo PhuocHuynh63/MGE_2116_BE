@@ -114,7 +114,7 @@ export class UserService {
         pageSize = 10;
       }
 
-      const excludedId = "677255766468b9ff71d6dabf";
+      const excludedId = "681cf90f70e8637b629afbf6";
 
       const filter = {
         $and: [
@@ -205,7 +205,7 @@ export class UserService {
     const { admin_key, ...payload } = updateUserDto;
     const findUser = await this.userModel.findOne({ id: payload.id });
     try {
-      if (admin_key !== '677255766468b9ff71d6dabf') {
+      if (admin_key !== '681cf90f70e8637b629afbf6') {
         throw new BadRequestException('Wrong admin key');
       }
 
@@ -253,7 +253,7 @@ export class UserService {
         return [];
       }
 
-      if (secretKey !== '677255766468b9ff71d6dabf') {
+      if (secretKey !== '681cf90f70e8637b629afbf6') {
         throw new BadRequestException('Wrong secret key');
       } else {
         //Create history for all users in timer
